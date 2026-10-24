@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Cá Nhân</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            user-select: none; /* Tránh bôi đen text khi kéo dãn */
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #000;
+        }
+
+        /* KHU VỰC BACKGROUND VIDEO */
+        #bg-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+        
+        #bg-container video, #bg-container iframe {
+            width: 100vw;
+            height: 100vh;
+            object-fit: cover;
+            border: none;
+            pointer-events: none;
+        }
+
+        /* KHU VỰC THẺ PROFILE (TRONG SUỐT 100% - CHỈ CÓ VIỀN BÓNG) */
+        .profile-card {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 350px;
+            padding: 40px 20px;
+            border-radius: 20px;
+            /* Trong suốt 100%, viền phát sáng */
+            background: transparent;
+            border: 2px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.4), inset 0 0 15px rgba(255, 255, 255, 0.2);
+            text-align: center;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .avatar:hover {
+            transform: scale(1.05);
+        }
+
+        .name {
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(0,0,0,0.8);
+        }
+
+        .bio {
+            font-size: 14px;
+            opacity: 0.9;
+            text-shadow: 0 0 8px rgba(0,0,0,0.8);
+            margin-bottom: 10px;
+        }
+
+        /* NÚT MẠNG XÃ HỘI (MÀU CHUẨN) */
+        .social-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+        }
+
+        .btn {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 15px;
+            border-radius: 30px;
+            text-decoration: none;
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: grab;
+            border: 1px solid rgba(255,255,255,0.3);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            /* Reset transition mặc định để xử lý bằng JS cho mượt */
+            transition: transform 0.1s;
+        }
+
+        .btn:active {
+            cursor: grabbing;
+        }
+
+        .btn-fb { background-color: #1877F2; }
+        .btn-tele { background-color: #24A1DE; }
+        .btn-zalo { background-color: #0068FF; }
+
+        .btn svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+
+        /* ADMIN PANEL (MODAL) */
+        .admin-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .admin-panel {
+            background: #fff;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .admin-panel h2 { color: #333; text-align: center; }
+        .admin-panel label { font-size: 14px; color: #555; font-weight: bold; }
+        .admin-panel input {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            width: 100%;
+            outline: none;
+        }
+        
+        .admin-btns { display: flex; gap: 10px; margin-top: 10px; }
+        .admin-btn {
+            flex: 1; padding: 10px; border: none; border-radius: 8px;
+            cursor: pointer; font-weight: bold; color: white;
+        }
+        .btn-save { background: #28a745; }
+        .btn-close { background: #dc3545; }
+        .help-text { font-size: 11px; color: #777; font-weight: normal; }
+
+    </style>
+</head>
+<body>
+
+    <!-- Kéo background video vào đây -->
+    <div id="bg-container"></div>
+
+    <!-- PROFILE CARD -->
+    <div class="profile-card">
+        <!-- Bấm đúp vào ảnh để mở Admin -->
+        <img src="https://i.imgur.com/8Q5Z2Xj.png" alt="Avatar" class="avatar" id="ui-avatar" title="Nhấp đúp để chỉnh sửa">
+        
+        <div class="name" id="ui-name">Nguyễn Văn A</div>
+        <div class="bio" id="ui-bio">Freelance Developer | UI/UX Enthusiast</div>
+
+        <div class="social-buttons">
+            <a href="#" class="btn btn-fb elastic" id="ui-fb" target="_blank" draggable="false">
+                <svg viewBox="0 0 320 512"><path d="M279.14 288l14.22-92.66h-88.91v-60.13c0-25.35 12.42-50.06 52.24-50.06h40.42V6.26S260.43 0 225.36 0c-73.22 0-121.08 44.38-121.08 124.72v70.62H22.89V288h81.39v224h100.17V288z"/></svg>
+                Facebook
+            </a>
+            
+            <a href="#" class="btn btn-tele elastic" id="ui-tele" target="_blank" draggable="false">
+                <svg viewBox="0 0 496 512"><path d="M248 8C111 8 0 119 0 256s111 248 248 248 248-111 248-248S385 8 248 8zm121.8 169.9l-40.7 191.8c-3 13.6-11.1 16.9-22.4 10.5l-62-45.7-29.9 28.8c-3.3 3.3-6.1 6.1-12.5 6.1l4.4-63.1 114.9-103.8c5-4.4-1.1-6.9-7.7-2.5l-142 89.4-61.2-19.1c-13.3-4.2-13.6-13.3 2.8-19.7l239.1-92.2c11.1-4 20.8 2.7 17.2 19.5z"/></svg>
+                Telegram
+            </a>
+
+            <a href="#" class="btn btn-zalo elastic" id="ui-zalo" target="_blank" draggable="false">
+                <!-- Zalo không có icon FontAwesome, tự vẽ bằng text SVG cơ bản -->
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.03 2 11c0 2.76 1.36 5.23 3.48 6.87-.26.96-.92 2.65-2.73 3.84.14.03.29.04.44.04 1.8 0 3.52-.78 4.7-2.02.83.24 1.7.37 2.61.37 5.52 0 10-4.03 10-9s-4.48-9-10-9z"/>
+                </svg>
+                Zalo
+            </a>
+        </div>
+    </div>
+
+    <!-- ADMIN PANEL -->
+    <div class="admin-overlay" id="admin-panel">
+        <div class="admin-panel">
+            <h2>Thiết Lập Profile</h2>
+            
+            <label>Link Video Nền (YouTube hoặc đuôi .mp4):
+                <span class="help-text"><br>Vd: https://www.youtube.com/watch?v=XXXXX</span>
+            </label>
+            <input type="text" id="input-bg" placeholder="Nhập link video...">
+            
+            <label>Ảnh Avatar (URL):</label>
+            <input type="text" id="input-avatar">
+
+            <label>Tên hiển thị:</label>
+            <input type="text" id="input-name">
+
+            <label>Tiểu sử / Nghề nghiệp:</label>
+            <input type="text" id="input-bio">
+
+            <label>Link Facebook:</label>
+            <input type="text" id="input-fb">
+
+            <label>Link Telegram:</label>
+            <input type="text" id="input-tele">
+
+            <label>Link Zalo:</label>
+            <input type="text" id="input-zalo">
+
+            <div class="admin-btns">
+                <button class="admin-btn btn-save" onclick="saveData()">Lưu & Cập nhật</button>
+                <button class="admin-btn btn-close" onclick="closeAdmin()">Hủy</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // === 1. QUẢN LÝ DỮ LIỆU BẰNG LOCALSTORAGE ===
+        const defaultData = {
+            bg: 'https://www.youtube.com/watch?v=ScMzIvxBSi4', // Video mây trôi mặc định
+            avatar: 'https://i.imgur.com/8Q5Z2Xj.png', // Ảnh ẩn danh mặc định
+            name: 'Tên Của Bạn',
+            bio: 'Lập trình viên | Designer',
+            fb: 'https://facebook.com',
+            tele: 'https://t.me',
+            zalo: 'https://zalo.me'
+        };
+
+        function loadData() {
+            const data = JSON.parse(localStorage.getItem('profileData')) || defaultData;
+            
+            document.getElementById('ui-avatar').src = data.avatar;
+            document.getElementById('ui-name').innerText = data.name;
+            document.getElementById('ui-bio').innerText = data.bio;
+            document.getElementById('ui-fb').href = data.fb;
+            document.getElementById('ui-tele').href = data.tele;
+            document.getElementById('ui-zalo').href = data.zalo;
+
+            // Xử lý background video
+            setVideoBackground(data.bg);
+
+            // Gán dữ liệu vào input của admin
+            document.getElementById('input-bg').value = data.bg;
+            document.getElementById('input-avatar').value = data.avatar;
+            document.getElementById('input-name').value = data.name;
+            document.getElementById('input-bio').value = data.bio;
+            document.getElementById('input-fb').value = data.fb;
+            document.getElementById('input-tele').value = data.tele;
+            document.getElementById('input-zalo').value = data.zalo;
+        }
+
+        function saveData() {
+            const data = {
+                bg: document.getElementById('input-bg').value,
+                avatar: document.getElementById('input-avatar').value,
+                name: document.getElementById('input-name').value,
+                bio: document.getElementById('input-bio').value,
+                fb: document.getElementById('input-fb').value,
+                tele: document.getElementById('input-tele').value,
+                zalo: document.getElementById('input-zalo').value,
+            };
+            localStorage.setItem('profileData', JSON.stringify(data));
+            loadData();
+            closeAdmin();
+        }
+
+        // === 2. XỬ LÝ LINK VIDEO NỀN (SMART PARSER) ===
+        function setVideoBackground(url) {
+            const bgContainer = document.getElementById('bg-container');
+            bgContainer.innerHTML = ''; // Xóa nền cũ
+
+            if (url.includes('youtube.com') || url.includes('youtu.be')) {
+                // Tách ID YouTube
+                let videoId = '';
+                if(url.includes('v=')) videoId = url.split('v=')[1].substring(0, 11);
+                else if(url.includes('youtu.be/')) videoId = url.split('youtu.be/')[1].substring(0, 11);
+
+                if (videoId) {
+                    bgContainer.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&showinfo=0&rel=0&loop=1&playlist=${videoId}" allow="autoplay" allowfullscreen></iframe>`;
+                }
+            } else {
+                // Giả định là link MP4 trực tiếp
+                bgContainer.innerHTML = `<video src="${url}" autoplay loop muted playsinline></video>`;
+            }
+        }
+
+        // === 3. HIỆU ỨNG VẬT LÝ LÒ XO (LIQUID ELASTIC) ===
+        const buttons = document.querySelectorAll('.elastic');
+
+        buttons.forEach(btn => {
+            let isDown = false;
+            let startX, startY;
+
+            // Khi nhấn chuột xuống (hoặc chạm cảm ứng)
+            const startInteraction = (e) => {
+                isDown = true;
+                btn.style.transition = 'none'; // Tắt mượt để chạy theo chuột ngay lập tức
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                startX = clientX;
+                startY = clientY;
+            };
+
+            // Khi di chuột kéo đi (như kéo cao su)
+            const moveInteraction = (e) => {
+                if (!isDown) return;
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                
+                let deltaX = clientX - startX;
+                let deltaY = clientY - startY;
+
+                // Tính toán khoảng cách kéo (giới hạn độ dãn tối đa là 40px để tránh vỡ UI)
+                const distance = Math.min(Math.sqrt(deltaX * deltaX + deltaY * deltaY), 40);
+                const angle = Math.atan2(deltaY, deltaX);
+
+                const pullX = Math.cos(angle) * distance;
+                const pullY = Math.sin(angle) * distance;
+
+                // Áp dụng biến dạng (scale to ra 1 chút và di chuyển theo chuột)
+                btn.style.transform = `translate(${pullX}px, ${pullY}px) scale(1.05) rotate(${deltaX * 0.05}deg)`;
+            };
+
+            // Khi buông chuột (Đàn hồi nảy lại)
+            const endInteraction = () => {
+                if (!isDown) return;
+                isDown = false;
+                // Cubic-bezier này tạo hiệu ứng nảy như lò xo / thạch
+                btn.style.transition = 'transform 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
+                btn.style.transform = 'translate(0px, 0px) scale(1) rotate(0deg)';
+            };
+
+            // Gắn sự kiện Chuột
+            btn.addEventListener('mousedown', startInteraction);
+            window.addEventListener('mousemove', moveInteraction);
+            window.addEventListener('mouseup', endInteraction);
+
+            // Gắn sự kiện Cảm ứng (Mobile)
+            btn.addEventListener('touchstart', startInteraction);
+            window.addEventListener('touchmove', moveInteraction);
+            window.addEventListener('touchend', endInteraction);
+        });
+
+        // === 4. ĐÓNG MỞ ADMIN PANEL BẰNG CÁCH NHÁY ĐÚP VÀO AVATAR ===
+        const adminPanel = document.getElementById('admin-panel');
+        
+        document.getElementById('ui-avatar').addEventListener('dblclick', () => {
+            adminPanel.style.display = 'flex';
+        });
+
+        function closeAdmin() {
+            adminPanel.style.display = 'none';
+        }
+
+        // Khởi chạy load dữ liệu lần đầu
+        loadData();
+
+    </script>
+</body>
+</html>
