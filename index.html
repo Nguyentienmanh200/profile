@@ -2,387 +2,688 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profile Cá Nhân</title>
+    <title>Đóng gói & Tải File ZIP - Liquid Profile</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            user-select: none; /* Tránh bôi đen text khi kéo dãn */
-        }
-
-        body, html {
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background-color: #000;
-        }
-
-        /* KHU VỰC BACKGROUND VIDEO */
-        #bg-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            pointer-events: none;
-        }
-        
-        #bg-container video, #bg-container iframe {
-            width: 100vw;
-            height: 100vh;
-            object-fit: cover;
-            border: none;
-            pointer-events: none;
-        }
-
-        /* KHU VỰC THẺ PROFILE (TRONG SUỐT 100% - CHỈ CÓ VIỀN BÓNG) */
-        .profile-card {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 350px;
-            padding: 40px 20px;
-            border-radius: 20px;
-            /* Trong suốt 100%, viền phát sáng */
-            background: transparent;
-            border: 2px solid rgba(255, 255, 255, 0.6);
-            box-shadow: 0 0 20px rgba(255, 255, 255, 0.4), inset 0 0 15px rgba(255, 255, 255, 0.2);
-            text-align: center;
-            color: #fff;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .avatar {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 3px solid rgba(255, 255, 255, 0.8);
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
-            cursor: pointer;
-            transition: transform 0.3s ease;
-        }
-
-        .avatar:hover {
-            transform: scale(1.05);
-        }
-
-        .name {
-            font-size: 24px;
-            font-weight: bold;
-            text-shadow: 0 0 10px rgba(0,0,0,0.8);
-        }
-
-        .bio {
-            font-size: 14px;
-            opacity: 0.9;
-            text-shadow: 0 0 8px rgba(0,0,0,0.8);
-            margin-bottom: 10px;
-        }
-
-        /* NÚT MẠNG XÃ HỘI (MÀU CHUẨN) */
-        .social-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            width: 100%;
-        }
-
-        .btn {
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            width: 100%;
-            padding: 15px;
-            border-radius: 30px;
-            text-decoration: none;
-            color: white;
-            font-weight: bold;
-            font-size: 16px;
-            cursor: grab;
-            border: 1px solid rgba(255,255,255,0.3);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            /* Reset transition mặc định để xử lý bằng JS cho mượt */
-            transition: transform 0.1s;
-        }
-
-        .btn:active {
-            cursor: grabbing;
-        }
-
-        .btn-fb { background-color: #1877F2; }
-        .btn-tele { background-color: #24A1DE; }
-        .btn-zalo { background-color: #0068FF; }
-
-        .btn svg {
-            width: 24px;
-            height: 24px;
-            fill: white;
-        }
-
-        /* ADMIN PANEL (MODAL) */
-        .admin-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-
-        .admin-panel {
-            background: #fff;
-            padding: 30px;
-            border-radius: 15px;
-            width: 90%;
-            max-width: 400px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .admin-panel h2 { color: #333; text-align: center; }
-        .admin-panel label { font-size: 14px; color: #555; font-weight: bold; }
-        .admin-panel input {
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            width: 100%;
-            outline: none;
-        }
-        
-        .admin-btns { display: flex; gap: 10px; margin-top: 10px; }
-        .admin-btn {
-            flex: 1; padding: 10px; border: none; border-radius: 8px;
-            cursor: pointer; font-weight: bold; color: white;
-        }
-        .btn-save { background: #28a745; }
-        .btn-close { background: #dc3545; }
-        .help-text { font-size: 11px; color: #777; font-weight: normal; }
-
+        body { background: #0f172a; color: #fff; font-family: system-ui, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .box { background: #1e293b; padding: 35px; border-radius: 20px; border: 1px solid #334155; text-align: center; max-width: 420px; width: 90%; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        h2 { margin-top: 0; color: #38bdf8; }
+        input { width: 100%; padding: 12px; margin: 15px 0; border-radius: 10px; border: 1px solid #475569; background: #0f172a; color: #fff; font-size: 15px; box-sizing: border-box; text-align: center; }
+        button { width: 100%; padding: 15px; border: none; border-radius: 12px; background: linear-gradient(135deg, #2563eb, #10b981); color: #fff; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.2s; }
+        button:hover { transform: scale(1.03); }
+        p { font-size: 13px; color: #94a3b8; line-height: 1.5; }
     </style>
 </head>
 <body>
+    <div class="box">
+        <h2>📦 Đóng Gói Liquid Profile</h2>
+        <p>Đặt mật khẩu Admin (sẽ lưu vào file <b>.env</b>) và tải trọn bộ mã nguồn dạng <b>.ZIP</b> để up lên Domain:</p>
+        <input type="text" id="adminPass" value="123456" placeholder="Nhập mật khẩu Admin...">
+        <button onclick="downloadZip()">⬇️ Tải Xuống Trọn Bộ (.ZIP)</button>
+    </div>
 
-    <!-- Kéo background video vào đây -->
-    <div id="bg-container"></div>
+    <script>
+        async function downloadZip() {
+            const pass = document.getElementById('adminPass').value.trim() || '123456';
+            const zip = new JSZip();
 
-    <!-- PROFILE CARD -->
-    <div class="profile-card">
-        <!-- Bấm đúp vào ảnh để mở Admin -->
-        <img src="https://i.imgur.com/8Q5Z2Xj.png" alt="Avatar" class="avatar" id="ui-avatar" title="Nhấp đúp để chỉnh sửa">
+            // 1. File .env
+            zip.file(".env", `ADMIN_PASS=${pass}\n`);
+
+            // 2. File .htaccess (Bảo mật khóa không cho người lạ xem file .env trên domain)
+            zip.file(".htaccess", `<Files ".env">\n    Order allow,deny\n    Deny from all\n</Files>\n`);
+
+            // 3. File api.php
+            zip.file("api.php", document.getElementById('tpl-php').textContent.trim());
+
+            // 4. File index.html
+            zip.file("index.html", document.getElementById('tpl-html').textContent.trim());
+
+            const content = await zip.generateAsync({ type: "blob" });
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(content);
+            a.download = "liquid-profile-domain.zip";
+            a.click();
+        }
+    </script>
+
+    <!-- NỘI DUNG FILE API.PHP -->
+    <script type="text/plain" id="tpl-php">
+<?php
+header('Content-Type: application/json; charset=utf-8');
+
+function getAdminPass() {
+    $envPath = __DIR__ . '/.env';
+    if (!file_exists($envPath)) return '123456';
+    $lines = file($envPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        if (strpos(trim($line), '#') === 0) continue;
+        $parts = explode('=', $line, 2);
+        if (count($parts) === 2 && trim($parts[0]) === 'ADMIN_PASS') {
+            return trim($parts[1]);
+        }
+    }
+    return '123456';
+}
+
+$dataFile = __DIR__ . '/data.json';
+$adminPass = getAdminPass();
+
+if (!file_exists($dataFile)) {
+    file_put_contents($dataFile, json_encode([
+        'stats' => ['views' => 0, 'fb' => 0, 'tele' => 0, 'zalo' => 0]
+    ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+}
+
+$currentData = json_decode(file_get_contents($dataFile), true) ?: [];
+if (!isset($currentData['stats'])) {
+    $currentData['stats'] = ['views' => 0, 'fb' => 0, 'tele' => 0, 'zalo' => 0];
+}
+
+$rawInput = file_get_contents('php://input');
+$body = json_decode($rawInput, true) ?: [];
+$action = $_GET['action'] ?? ($body['action'] ?? ($_POST['action'] ?? ''));
+
+if ($action === 'track') {
+    $type = $body['type'] ?? 'views';
+    if (in_array($type, ['views', 'fb', 'tele', 'zalo'])) {
+        $currentData['stats'][$type] = ($currentData['stats'][$type] ?? 0) + 1;
+        file_put_contents($dataFile, json_encode($currentData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
+    }
+    echo json_encode(['success' => true, 'stats' => $currentData['stats']]);
+    exit;
+}
+
+if ($action === 'login') {
+    $pass = $body['password'] ?? '';
+    if ($pass === $adminPass) {
+        echo json_encode(['success' => true, 'data' => $currentData]);
+    } else {
+        echo json_encode(['success' => false]);
+    }
+    exit;
+}
+
+if ($action === 'upload') {
+    $pass = $_POST['password'] ?? '';
+    if ($pass !== $adminPass) {
+        echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+        exit;
+    }
+    if (isset($_FILES['file']) && $_FILES['file']['error'] === UPLOAD_ERR_OK) {
+        $uploadDir = __DIR__ . '/uploads/';
+        if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
         
-        <div class="name" id="ui-name">Nguyễn Văn A</div>
-        <div class="bio" id="ui-bio">Freelance Developer | UI/UX Enthusiast</div>
+        $ext = strtolower(pathinfo($_FILES['file']['name'], PATHINFO_EXTENSION));
+        $allowed = ['mp4', 'webm', 'mov', 'jpg', 'jpeg', 'png', 'gif', 'webp'];
+        if (!in_array($ext, $allowed)) {
+            echo json_encode(['success' => false, 'error' => 'Invalid file type']);
+            exit;
+        }
 
-        <div class="social-buttons">
-            <a href="#" class="btn btn-fb elastic" id="ui-fb" target="_blank" draggable="false">
+        $fileName = 'bg_' . time() . '_' . rand(100, 999) . '.' . $ext;
+        $targetPath = $uploadDir . $fileName;
+        
+        if (move_uploaded_file($_FILES['file']['tmp_name'], $targetPath)) {
+            echo json_encode(['success' => true, 'url' => 'uploads/' . $fileName]);
+            exit;
+        }
+    }
+    echo json_encode(['success' => false]);
+    exit;
+}
+
+if ($action === 'save') {
+    $pass = $body['password'] ?? '';
+    if ($pass !== $adminPass) {
+        echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+        exit;
+    }
+    $newData = $body['data'] ?? [];
+    $newData['stats'] = $currentData['stats'];
+    file_put_contents($dataFile, json_encode($newData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
+    echo json_encode(['success' => true]);
+    exit;
+}
+
+echo json_encode(['success' => false]);
+    </script>
+
+    <!-- NỘI DUNG FILE INDEX.HTML -->
+    <script type="text/plain" id="tpl-html">
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Liquid Crystal Profile</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+        body, html { width: 100%; height: 100%; background-color: #050505; color: #fff; overflow-x: hidden; overscroll-behavior-y: none; }
+        body.lock-scroll { overflow: hidden !important; touch-action: none !important; }
+        #bg-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 0; overflow: hidden; background: radial-gradient(circle at center, #111827 0%, #030712 100%); }
+        #bg-container video, #bg-container img { width: 100vw; height: 100vh; object-fit: cover; position: absolute; top: 0; left: 0; pointer-events: none; }
+        #bg-container iframe { position: absolute; top: 50%; left: 50%; width: 100vw; height: 56.25vw; min-height: 100vh; min-width: 177.77vh; transform: translate(-50%, -50%); border: none; pointer-events: none; }
+        .bg-vignette { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: radial-gradient(circle, rgba(0,0,0,0.02) 0%, rgba(0,0,0,0.4) 100%); z-index: 1; pointer-events: none; }
+        .sound-pill { position: fixed; top: 22px; left: 22px; z-index: 60; display: flex; align-items: center; gap: 10px; padding: 10px 18px; border-radius: 40px; background: transparent; border: 2px solid rgba(255, 255, 255, 0.8); box-shadow: 0 0 20px rgba(255, 255, 255, 0.35), inset 0 0 12px rgba(255, 255, 255, 0.25); color: #fff; font-weight: 700; font-size: 13px; cursor: pointer; text-shadow: 0 2px 6px rgba(0,0,0,0.9); transition: transform 0.2s; }
+        .sound-pill:hover { transform: scale(1.05); }
+        .eq-bars { display: flex; align-items: flex-end; gap: 3px; height: 14px; }
+        .eq-bar { width: 3px; background: #fff; border-radius: 2px; height: 4px; box-shadow: 0 0 6px #fff; }
+        .sound-pill.playing .eq-bar:nth-child(1) { animation: eq 0.6s infinite ease-in-out; }
+        .sound-pill.playing .eq-bar:nth-child(2) { animation: eq 0.6s infinite ease-in-out 0.2s; }
+        .sound-pill.playing .eq-bar:nth-child(3) { animation: eq 0.6s infinite ease-in-out 0.4s; }
+        @keyframes eq { 0%, 100% { height: 4px; } 50% { height: 14px; } }
+        .fullscreen-wrapper { position: relative; z-index: 2; width: 100%; min-height: 100vh; padding: 65px 5% 90px 5%; max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; gap: 35px; }
+        .hero-header { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 14px; }
+        .avatar-ring { position: relative; padding: 6px; border-radius: 50%; background: transparent; border: 2.5px solid rgba(255, 255, 255, 0.9); box-shadow: 0 0 30px rgba(255, 255, 255, 0.55), inset 0 0 18px rgba(255, 255, 255, 0.45); cursor: grab; touch-action: none; }
+        .avatar { width: 138px; height: 138px; border-radius: 50%; object-fit: cover; display: block; pointer-events: none; }
+        .name { font-size: 40px; font-weight: 900; letter-spacing: 1.2px; text-shadow: 0 4px 22px rgba(0, 0, 0, 0.95), 0 0 15px rgba(255, 255, 255, 0.45); }
+        .bio { font-size: 16px; font-weight: 700; padding: 10px 26px; border-radius: 50px; background: transparent; border: 2px solid rgba(255, 255, 255, 0.8); box-shadow: 0 0 18px rgba(255, 255, 255, 0.3), inset 0 0 12px rgba(255, 255, 255, 0.2); text-shadow: 0 2px 10px rgba(0, 0, 0, 0.95); touch-action: none; cursor: grab; }
+        .social-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 22px; width: 100%; max-width: 880px; }
+        .btn { flex: 1; min-width: 230px; display: flex; align-items: center; justify-content: center; gap: 12px; padding: 18px 30px; border-radius: 45px; text-decoration: none; color: #fff; font-weight: 800; font-size: 17px; letter-spacing: 0.5px; cursor: grab; position: relative; border: 2px solid rgba(255, 255, 255, 0.85); will-change: transform; touch-action: none; }
+        .btn:active { cursor: grabbing; }
+        .btn-fb { background: linear-gradient(135deg, #1877F2 0%, #0c59cf 100%); box-shadow: 0 10px 28px rgba(24, 119, 242, 0.6), inset 0 3px 10px rgba(255, 255, 255, 0.65); }
+        .btn-tele { background: linear-gradient(135deg, #24A1DE 0%, #1378ad 100%); box-shadow: 0 10px 28px rgba(36, 161, 222, 0.6), inset 0 3px 10px rgba(255, 255, 255, 0.65); }
+        .btn-zalo { background: linear-gradient(135deg, #0068FF 0%, #0047b3 100%); box-shadow: 0 10px 28px rgba(0, 104, 255, 0.6), inset 0 3px 10px rgba(255, 255, 255, 0.65); }
+        .btn svg { width: 26px; height: 26px; fill: currentColor; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.35)); pointer-events: none; }
+        .btn span { pointer-events: none; }
+        .widgets-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(310px, 1fr)); gap: 26px; width: 100%; }
+        .liquid-widget { background: transparent; border-radius: 38px; padding: 30px; border: 2px solid rgba(255, 255, 255, 0.8); box-shadow: 0 0 25px rgba(255, 255, 255, 0.3), inset 0 0 20px rgba(255, 255, 255, 0.22); cursor: grab; will-change: transform; display: flex; flex-direction: column; gap: 12px; touch-action: none; }
+        .liquid-widget:active { cursor: grabbing; }
+        .widget-title { font-size: 20px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.2px; text-shadow: 0 2px 12px rgba(0, 0, 0, 0.98); pointer-events: none; }
+        .widget-content { font-size: 15px; line-height: 1.65; font-weight: 600; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.98), 0 0 5px rgba(0,0,0,0.95); white-space: pre-line; pointer-events: none; }
+        .floating-admin-btn { position: fixed; bottom: 22px; right: 22px; z-index: 60; width: 50px; height: 50px; border-radius: 50%; background: transparent; border: 2px solid rgba(255, 255, 255, 0.75); box-shadow: 0 0 18px rgba(255, 255, 255, 0.35), inset 0 0 12px rgba(255, 255, 255, 0.25); color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 20px; transition: transform 0.25s; }
+        .floating-admin-btn:hover { transform: scale(1.12) rotate(60deg); }
+        #status-toast { position: fixed; top: 22px; right: 22px; z-index: 3000; padding: 12px 24px; border-radius: 35px; background: rgba(10, 10, 14, 0.92); border: 1.5px solid rgba(255,255,255,0.7); color: #fff; font-size: 14px; font-weight: 700; display: none; box-shadow: 0 8px 25px rgba(0,0,0,0.6); }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); display: none; justify-content: center; align-items: center; z-index: 2000; padding: 15px; }
+        .modal-box { background: #121216; color: #f4f4f5; padding: 28px; border-radius: 28px; border: 1px solid #2e2e38; width: 100%; max-width: 580px; max-height: 92vh; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 25px 60px rgba(0,0,0,0.9); }
+        .modal-box h2 { text-align: center; font-size: 22px; color: #fff; }
+        .modal-box label { font-size: 12px; color: #a1a1aa; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+        .modal-box input, .modal-box textarea { padding: 12px 14px; background: #1e1e24; border: 1px solid #34343e; color: #fff; border-radius: 12px; width: 100%; outline: none; font-size: 14px; }
+        .stats-dashboard { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; background: #1a1a22; padding: 14px; border-radius: 18px; border: 1px solid #2e2e3a; }
+        @media (max-width: 500px) { .stats-dashboard { grid-template-columns: repeat(2, 1fr); } }
+        .stat-card { background: #24242e; padding: 12px 8px; border-radius: 12px; text-align: center; display: flex; flex-direction: column; gap: 4px; }
+        .stat-val { font-size: 22px; font-weight: 900; color: #fff; }
+        .stat-label { font-size: 11px; color: #9ca3af; font-weight: 700; }
+        .stat-fb .stat-val { color: #3b82f6; }
+        .stat-tele .stat-val { color: #38bdf8; }
+        .stat-zalo .stat-val { color: #60a5fa; }
+        .stat-views .stat-val { color: #34d399; }
+        .upload-zone { background: #1e1e24; padding: 14px; border-radius: 14px; border: 1.5px dashed #4b5563; display: flex; flex-direction: column; gap: 8px; }
+        .badge-info { font-size: 12px; color: #38bdf8; line-height: 1.4; }
+        .section-item-admin { background: #1e1e24; padding: 12px; border-radius: 12px; display: flex; flex-direction: column; gap: 8px; border: 1px solid #2e2e38; }
+        .btn-remove-sec { align-self: flex-end; background: #ef4444; color: #fff; border: none; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; }
+        .btn-add-sec { background: #2563eb; color: white; border: none; padding: 11px; border-radius: 10px; font-weight: 800; cursor: pointer; }
+        .admin-btns { display: flex; gap: 12px; margin-top: 8px; }
+        .admin-btn { flex: 1; padding: 14px; border: none; border-radius: 14px; cursor: pointer; font-weight: 800; font-size: 15px; color: white; }
+        .btn-save { background: #10b981; }
+        .btn-close { background: #ef4444; }
+    </style>
+</head>
+<body>
+    <div id="status-toast">Đang xử lý...</div>
+    <div id="bg-container"></div>
+    <div class="bg-vignette"></div>
+
+    <button class="sound-pill" id="sound-toggle" onclick="toggleSound()">
+        <div class="eq-bars"><div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div></div>
+        <span id="sound-text">Bật Âm Thanh</span>
+    </button>
+
+    <button class="floating-admin-btn" onclick="requestAdminAccess()" title="Mở Admin Panel">⚙️</button>
+
+    <main class="fullscreen-wrapper">
+        <header class="hero-header">
+            <div class="avatar-ring elastic" id="avatar-trigger" title="Nhấp đúp vào ảnh để mở Admin">
+                <img src="" alt="Avatar" class="avatar" id="ui-avatar" referrerpolicy="no-referrer">
+            </div>
+            <h1 class="name" id="ui-name">Đang tải...</h1>
+            <div class="bio elastic" id="ui-bio">...</div>
+        </header>
+
+        <nav class="social-row">
+            <a href="#" class="btn btn-fb elastic" id="ui-fb" data-platform="fb" target="_blank" draggable="false">
                 <svg viewBox="0 0 320 512"><path d="M279.14 288l14.22-92.66h-88.91v-60.13c0-25.35 12.42-50.06 52.24-50.06h40.42V6.26S260.43 0 225.36 0c-73.22 0-121.08 44.38-121.08 124.72v70.62H22.89V288h81.39v224h100.17V288z"/></svg>
-                Facebook
+                <span>Facebook</span>
             </a>
-            
-            <a href="#" class="btn btn-tele elastic" id="ui-tele" target="_blank" draggable="false">
+            <a href="#" class="btn btn-tele elastic" id="ui-tele" data-platform="tele" target="_blank" draggable="false">
                 <svg viewBox="0 0 496 512"><path d="M248 8C111 8 0 119 0 256s111 248 248 248 248-111 248-248S385 8 248 8zm121.8 169.9l-40.7 191.8c-3 13.6-11.1 16.9-22.4 10.5l-62-45.7-29.9 28.8c-3.3 3.3-6.1 6.1-12.5 6.1l4.4-63.1 114.9-103.8c5-4.4-1.1-6.9-7.7-2.5l-142 89.4-61.2-19.1c-13.3-4.2-13.6-13.3 2.8-19.7l239.1-92.2c11.1-4 20.8 2.7 17.2 19.5z"/></svg>
-                Telegram
+                <span>Telegram</span>
             </a>
+            <a href="#" class="btn btn-zalo elastic" id="ui-zalo" data-platform="zalo" target="_blank" draggable="false">
+                <svg viewBox="0 0 48 48"><path d="M24 4C12.95 4 4 11.95 4 21.75c0 5.63 2.97 10.64 7.6 13.88-.47 2.13-1.68 5.25-4.96 7.42-.45.3-.21 1 .33.95 4.2-.36 7.82-2.09 10.15-3.66 2.18.6 4.49.91 6.88.91 11.05 0 20-7.95 20-17.75S35.05 4 24 4zm-7.5 22h-6v-2.1l4.1-5.9h-3.9v-2h6v2.1l-4.1 5.9h3.9v2zm6.8 0h-2v-1c-.6.8-1.4 1.2-2.5 1.2-2.1 0-3.6-1.7-3.6-4.2s1.5-4.2 3.6-4.2c1.1 0 1.9.4 2.5 1.2v-1h2v8zm4.2 0h-2V15h2v11zm6.5.2c-2.4 0-4.2-1.7-4.2-4.2s1.8-4.2 4.2-4.2 4.2 1.7 4.2 4.2-1.8 4.2-4.2 4.2z"/></svg>
+                <span>Zalo</span>
+            </a>
+        </nav>
 
-            <a href="#" class="btn btn-zalo elastic" id="ui-zalo" target="_blank" draggable="false">
-                <!-- Zalo không có icon FontAwesome, tự vẽ bằng text SVG cơ bản -->
-                <svg viewBox="0 0 24 24">
-                    <path d="M12 2C6.48 2 2 6.03 2 11c0 2.76 1.36 5.23 3.48 6.87-.26.96-.92 2.65-2.73 3.84.14.03.29.04.44.04 1.8 0 3.52-.78 4.7-2.02.83.24 1.7.37 2.61.37 5.52 0 10-4.03 10-9s-4.48-9-10-9z"/>
-                </svg>
-                Zalo
-            </a>
+        <section class="widgets-grid" id="ui-widgets-grid"></section>
+    </main>
+
+    <div class="modal-overlay" id="login-modal">
+        <div class="modal-box" style="max-width: 380px;">
+            <h2>🔒 Xác Thực Admin</h2>
+            <label>Nhập mật khẩu trong file .env:</label>
+            <input type="password" id="input-admin-pass" placeholder="Nhập mật khẩu..." onkeydown="if(event.key==='Enter') verifyLogin()">
+            <div class="admin-btns">
+                <button class="admin-btn btn-save" onclick="verifyLogin()">Đăng Nhập</button>
+                <button class="admin-btn btn-close" onclick="document.getElementById('login-modal').style.display='none'">Hủy</button>
+            </div>
         </div>
     </div>
 
-    <!-- ADMIN PANEL -->
-    <div class="admin-overlay" id="admin-panel">
-        <div class="admin-panel">
-            <h2>Thiết Lập Profile</h2>
-            
-            <label>Link Video Nền (YouTube hoặc đuôi .mp4):
-                <span class="help-text"><br>Vd: https://www.youtube.com/watch?v=XXXXX</span>
-            </label>
-            <input type="text" id="input-bg" placeholder="Nhập link video...">
-            
-            <label>Ảnh Avatar (URL):</label>
+    <div class="modal-overlay" id="admin-panel">
+        <div class="modal-box">
+            <h2>👑 Quản Trị Hệ Thống & Thống Kê</h2>
+            <label>📊 Thống Kê Thời Gian Thực (Lưu trên Domain JSON):</label>
+            <div class="stats-dashboard">
+                <div class="stat-card stat-views"><span class="stat-val" id="stat-views">0</span><span class="stat-label">👁️ Lượt Xem</span></div>
+                <div class="stat-card stat-fb"><span class="stat-val" id="stat-fb">0</span><span class="stat-label">👍 Click FB</span></div>
+                <div class="stat-card stat-tele"><span class="stat-val" id="stat-tele">0</span><span class="stat-label">✈️ Click Tele</span></div>
+                <div class="stat-card stat-zalo"><span class="stat-val" id="stat-zalo">0</span><span class="stat-label">💬 Click Zalo</span></div>
+            </div>
+
+            <label>1. Upload Video/Ảnh từ máy lên Host:</label>
+            <div class="upload-zone">
+                <input type="file" id="input-upload-file" accept="video/*,image/*">
+                <div class="badge-info" id="upload-status">Chọn file để tải thẳng lên thư mục /uploads trên Domain.</div>
+            </div>
+
+            <label>2. Hoặc dán Link (TikTok, YouTube, .mp4, Catbox, upanhnhanh...):</label>
+            <input type="text" id="input-bg" placeholder="Dán link TikTok, YouTube, hoặc link .mp4...">
+
+            <label>Link Ảnh Avatar:</label>
             <input type="text" id="input-avatar">
 
-            <label>Tên hiển thị:</label>
-            <input type="text" id="input-name">
+            <label>Tên Hiển Thị & Tiểu Sử (Bio):</label>
+            <input type="text" id="input-name" placeholder="Tên hiển thị">
+            <input type="text" id="input-bio" placeholder="Tiểu sử">
 
-            <label>Tiểu sử / Nghề nghiệp:</label>
-            <input type="text" id="input-bio">
+            <label>Link Chuyển Hướng (Facebook / Telegram / Zalo):</label>
+            <input type="text" id="input-fb" placeholder="https://facebook.com/...">
+            <input type="text" id="input-tele" placeholder="https://t.me/...">
+            <input type="text" id="input-zalo" placeholder="https://zalo.me/...">
 
-            <label>Link Facebook:</label>
-            <input type="text" id="input-fb">
-
-            <label>Link Telegram:</label>
-            <input type="text" id="input-tele">
-
-            <label>Link Zalo:</label>
-            <input type="text" id="input-zalo">
+            <label>Các Khối Nội Dung Mở Rộng:</label>
+            <div id="admin-sections-list" style="display:flex; flex-direction:column; gap:10px;"></div>
+            <button type="button" class="btn-add-sec" onclick="addSectionAdmin()">+ Thêm Mục Mới</button>
 
             <div class="admin-btns">
-                <button class="admin-btn btn-save" onclick="saveData()">Lưu & Cập nhật</button>
-                <button class="admin-btn btn-close" onclick="closeAdmin()">Hủy</button>
+                <button class="admin-btn btn-save" onclick="saveDataToServer()">💾 Lưu Lên Domain (JSON)</button>
+                <button class="admin-btn btn-close" onclick="closeAdmin()">Đóng</button>
             </div>
         </div>
     </div>
 
     <script>
-        // === 1. QUẢN LÝ DỮ LIỆU BẰNG LOCALSTORAGE ===
         const defaultData = {
-            bg: 'https://www.youtube.com/watch?v=ScMzIvxBSi4', // Video mây trôi mặc định
-            avatar: 'https://i.imgur.com/8Q5Z2Xj.png', // Ảnh ẩn danh mặc định
-            name: 'Tên Của Bạn',
-            bio: 'Lập trình viên | Designer',
+            bgLink: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+            avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80',
+            name: 'ALEX NGUYỄN',
+            bio: '⚡ Full-stack Creator • Liquid UI Architect ⚡',
             fb: 'https://facebook.com',
             tele: 'https://t.me',
-            zalo: 'https://zalo.me'
+            zalo: 'https://zalo.me',
+            sections: [
+                { title: '💎 Không Gian Pha Lê Lỏng', content: 'Giao diện trong suốt 100% với hiệu ứng vật lý đàn hồi.\nKhi bạn giữ và kéo nút, trang sẽ đứng im tuyệt đối để bạn cảm nhận độ nảy!' },
+                { title: '🚀 Kỹ Năng Chuyên Môn', content: '• Thiết kế trải nghiệm tương tác vật lý 60FPS\n• Phát triển hệ thống Web Full-stack thời gian thực\n• Tối ưu hóa đa phương tiện & Tự động hóa API' }
+            ],
+            stats: { views: 1, fb: 0, tele: 0, zalo: 0 }
         };
 
-        function loadData() {
-            const data = JSON.parse(localStorage.getItem('profileData')) || defaultData;
-            
-            document.getElementById('ui-avatar').src = data.avatar;
-            document.getElementById('ui-name').innerText = data.name;
-            document.getElementById('ui-bio').innerText = data.bio;
-            document.getElementById('ui-fb').href = data.fb;
-            document.getElementById('ui-tele').href = data.tele;
-            document.getElementById('ui-zalo').href = data.zalo;
+        let appData = defaultData;
+        let sessionAdminPass = '';
+        let activeVideoEl = null;
+        let isSoundMuted = false;
 
-            // Xử lý background video
-            setVideoBackground(data.bg);
-
-            // Gán dữ liệu vào input của admin
-            document.getElementById('input-bg').value = data.bg;
-            document.getElementById('input-avatar').value = data.avatar;
-            document.getElementById('input-name').value = data.name;
-            document.getElementById('input-bio').value = data.bio;
-            document.getElementById('input-fb').value = data.fb;
-            document.getElementById('input-tele').value = data.tele;
-            document.getElementById('input-zalo').value = data.zalo;
+        function showToast(msg, duration = 3500) {
+            const t = document.getElementById('status-toast');
+            t.innerText = msg;
+            t.style.display = 'block';
+            clearTimeout(t.timer);
+            t.timer = setTimeout(() => { t.style.display = 'none'; }, duration);
         }
 
-        function saveData() {
-            const data = {
-                bg: document.getElementById('input-bg').value,
-                avatar: document.getElementById('input-avatar').value,
-                name: document.getElementById('input-name').value,
-                bio: document.getElementById('input-bio').value,
-                fb: document.getElementById('input-fb').value,
-                tele: document.getElementById('input-tele').value,
-                zalo: document.getElementById('input-zalo').value,
-            };
-            localStorage.setItem('profileData', JSON.stringify(data));
-            loadData();
-            closeAdmin();
-        }
-
-        // === 2. XỬ LÝ LINK VIDEO NỀN (SMART PARSER) ===
-        function setVideoBackground(url) {
-            const bgContainer = document.getElementById('bg-container');
-            bgContainer.innerHTML = ''; // Xóa nền cũ
-
-            if (url.includes('youtube.com') || url.includes('youtu.be')) {
-                // Tách ID YouTube
-                let videoId = '';
-                if(url.includes('v=')) videoId = url.split('v=')[1].substring(0, 11);
-                else if(url.includes('youtu.be/')) videoId = url.split('youtu.be/')[1].substring(0, 11);
-
-                if (videoId) {
-                    bgContainer.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&showinfo=0&rel=0&loop=1&playlist=${videoId}" allow="autoplay" allowfullscreen></iframe>`;
+        async function callServer(action, payload = {}, isFormData = false) {
+            try {
+                const opts = { method: 'POST' };
+                if (isFormData) {
+                    opts.body = payload;
+                } else {
+                    opts.headers = { 'Content-Type': 'application/json' };
+                    opts.body = JSON.stringify({ action, ...payload });
                 }
-            } else {
-                // Giả định là link MP4 trực tiếp
-                bgContainer.innerHTML = `<video src="${url}" autoplay loop muted playsinline></video>`;
+                const res = await fetch(`api.php?action=${action}`, opts);
+                if (res.ok) return await res.json();
+            } catch (e) {}
+            return null;
+        }
+
+        async function initApp() {
+            try {
+                const res = await fetch(`data.json?t=${Date.now()}`);
+                if (res.ok) {
+                    const serverData = await res.json();
+                    if (serverData && serverData.name) {
+                        appData = { ...defaultData, ...serverData, stats: { ...defaultData.stats, ...(serverData.stats || {}) } };
+                    }
+                }
+            } catch (e) {}
+
+            renderUI();
+            await renderBackground();
+
+            const trackRes = await callServer('track', { type: 'views' });
+            if (trackRes && trackRes.stats) appData.stats = trackRes.stats;
+        }
+
+        async function renderBackground() {
+            const container = document.getElementById('bg-container');
+            let url = (appData.bgLink || '').trim();
+            if (!url) return;
+
+            if (url.includes('tiktok.com')) {
+                showToast('⏳ Đang kết nối nguồn phát TikTok có âm thanh...');
+                try {
+                    const res = await fetch(`https://www.tikwm.com/api/?url=${encodeURIComponent(url)}`);
+                    const json = await res.json();
+                    if (json && json.data && json.data.play) {
+                        mountSmartVideo(container, json.data.play);
+                        return;
+                    }
+                } catch (e) {}
+            }
+
+            const ytRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+            const ytMatch = url.match(ytRegex);
+            if (ytMatch && ytMatch[1]) {
+                const vid = ytMatch[1];
+                container.innerHTML = `<iframe src="https://www.youtube.com/embed/${vid}?autoplay=1&mute=0&controls=0&loop=1&playlist=${vid}&playsinline=1&enablejsapi=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+                updateSoundUI(true);
+                return;
+            }
+
+            if (/\.(jpg|jpeg|png|gif|webp|bmp|svg)(\?.*)?$/i.test(url)) {
+                container.innerHTML = `<img src="${url}" referrerpolicy="no-referrer" alt="Background">`;
+                document.getElementById('sound-toggle').style.display = 'none';
+                return;
+            }
+
+            mountSmartVideo(container, url);
+        }
+
+        function mountSmartVideo(container, srcUrl) {
+            document.getElementById('sound-toggle').style.display = 'flex';
+            container.innerHTML = '';
+            const video = document.createElement('video');
+            video.src = srcUrl;
+            video.loop = true;
+            video.playsInline = true;
+            video.volume = 1.0;
+            video.setAttribute('playsinline', '');
+            video.setAttribute('webkit-playsinline', '');
+            video.setAttribute('referrerpolicy', 'no-referrer');
+            container.appendChild(video);
+            activeVideoEl = video;
+
+            video.muted = false;
+            const playPromise = video.play();
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    isSoundMuted = false;
+                    updateSoundUI(true);
+                }).catch(() => {
+                    video.muted = true;
+                    isSoundMuted = true;
+                    video.play().catch(() => {});
+                    updateSoundUI(false);
+
+                    const unlockAudio = () => {
+                        if (activeVideoEl && isSoundMuted) {
+                            activeVideoEl.muted = false;
+                            activeVideoEl.volume = 1.0;
+                            activeVideoEl.play().catch(() => {});
+                            isSoundMuted = false;
+                            updateSoundUI(true);
+                        }
+                        window.removeEventListener('pointerdown', unlockAudio);
+                        window.removeEventListener('keydown', unlockAudio);
+                    };
+                    window.addEventListener('pointerdown', unlockAudio, { once: true });
+                    window.addEventListener('keydown', unlockAudio, { once: true });
+                });
             }
         }
 
-        // === 3. HIỆU ỨNG VẬT LÝ LÒ XO (LIQUID ELASTIC) ===
-        const buttons = document.querySelectorAll('.elastic');
-
-        buttons.forEach(btn => {
-            let isDown = false;
-            let startX, startY;
-
-            // Khi nhấn chuột xuống (hoặc chạm cảm ứng)
-            const startInteraction = (e) => {
-                isDown = true;
-                btn.style.transition = 'none'; // Tắt mượt để chạy theo chuột ngay lập tức
-                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-                startX = clientX;
-                startY = clientY;
-            };
-
-            // Khi di chuột kéo đi (như kéo cao su)
-            const moveInteraction = (e) => {
-                if (!isDown) return;
-                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-                
-                let deltaX = clientX - startX;
-                let deltaY = clientY - startY;
-
-                // Tính toán khoảng cách kéo (giới hạn độ dãn tối đa là 40px để tránh vỡ UI)
-                const distance = Math.min(Math.sqrt(deltaX * deltaX + deltaY * deltaY), 40);
-                const angle = Math.atan2(deltaY, deltaX);
-
-                const pullX = Math.cos(angle) * distance;
-                const pullY = Math.sin(angle) * distance;
-
-                // Áp dụng biến dạng (scale to ra 1 chút và di chuyển theo chuột)
-                btn.style.transform = `translate(${pullX}px, ${pullY}px) scale(1.05) rotate(${deltaX * 0.05}deg)`;
-            };
-
-            // Khi buông chuột (Đàn hồi nảy lại)
-            const endInteraction = () => {
-                if (!isDown) return;
-                isDown = false;
-                // Cubic-bezier này tạo hiệu ứng nảy như lò xo / thạch
-                btn.style.transition = 'transform 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
-                btn.style.transform = 'translate(0px, 0px) scale(1) rotate(0deg)';
-            };
-
-            // Gắn sự kiện Chuột
-            btn.addEventListener('mousedown', startInteraction);
-            window.addEventListener('mousemove', moveInteraction);
-            window.addEventListener('mouseup', endInteraction);
-
-            // Gắn sự kiện Cảm ứng (Mobile)
-            btn.addEventListener('touchstart', startInteraction);
-            window.addEventListener('touchmove', moveInteraction);
-            window.addEventListener('touchend', endInteraction);
-        });
-
-        // === 4. ĐÓNG MỞ ADMIN PANEL BẰNG CÁCH NHÁY ĐÚP VÀO AVATAR ===
-        const adminPanel = document.getElementById('admin-panel');
-        
-        document.getElementById('ui-avatar').addEventListener('dblclick', () => {
-            adminPanel.style.display = 'flex';
-        });
-
-        function closeAdmin() {
-            adminPanel.style.display = 'none';
+        function toggleSound() {
+            if (!activeVideoEl) return;
+            isSoundMuted = !isSoundMuted;
+            activeVideoEl.muted = isSoundMuted;
+            if (!isSoundMuted) activeVideoEl.play().catch(() => {});
+            updateSoundUI(!isSoundMuted);
         }
 
-        // Khởi chạy load dữ liệu lần đầu
-        loadData();
+        function updateSoundUI(isPlayingSound) {
+            const pill = document.getElementById('sound-toggle');
+            const txt = document.getElementById('sound-text');
+            if (isPlayingSound) {
+                pill.classList.add('playing');
+                txt.innerText = 'Âm Thanh: BẬT';
+            } else {
+                pill.classList.remove('playing');
+                txt.innerText = 'Chạm Để Bật Tiếng';
+            }
+        }
 
+        function renderUI() {
+            document.getElementById('ui-avatar').src = appData.avatar;
+            document.getElementById('ui-name').innerText = appData.name;
+            document.getElementById('ui-bio').innerText = appData.bio;
+            document.getElementById('ui-fb').href = appData.fb;
+            document.getElementById('ui-tele').href = appData.tele;
+            document.getElementById('ui-zalo').href = appData.zalo;
+
+            const grid = document.getElementById('ui-widgets-grid');
+            grid.innerHTML = '';
+            (appData.sections || []).forEach((sec) => {
+                const card = document.createElement('div');
+                card.className = 'liquid-widget elastic';
+                card.innerHTML = `<div class="widget-title">${sec.title}</div><div class="widget-content">${sec.content}</div>`;
+                grid.appendChild(card);
+            });
+
+            initSpringPhysics();
+        }
+
+        function initSpringPhysics() {
+            const elements = document.querySelectorAll('.elastic');
+            elements.forEach(el => {
+                if (el.dataset.boundPhysics) return;
+                el.dataset.boundPhysics = 'true';
+
+                let isDragging = false, startX = 0, startY = 0, movedDistance = 0;
+
+                const onStart = (e) => {
+                    isDragging = true;
+                    movedDistance = 0;
+                    el.style.transition = 'none';
+                    document.body.classList.add('lock-scroll');
+                    const pt = e.touches ? e.touches[0] : e;
+                    startX = pt.clientX; startY = pt.clientY;
+                };
+
+                const onMove = (e) => {
+                    if (!isDragging) return;
+                    if (e.cancelable) e.preventDefault();
+                    const pt = e.touches ? e.touches[0] : e;
+                    const dx = pt.clientX - startX;
+                    const dy = pt.clientY - startY;
+                    movedDistance = Math.hypot(dx, dy);
+
+                    const maxPull = 60;
+                    const pull = Math.min(movedDistance * 0.48, maxPull);
+                    const angle = Math.atan2(dy, dx);
+                    const tx = Math.cos(angle) * pull;
+                    const ty = Math.sin(angle) * pull;
+                    const stretch = 1 + (pull / maxPull) * 0.16;
+                    const squash = 1 - (pull / maxPull) * 0.07;
+                    const rotate = dx * 0.045;
+
+                    el.style.transform = `translate3d(${tx}px, ${ty}px, 0) rotate(${rotate}deg) scale(${stretch}, ${squash})`;
+                };
+
+                const onEnd = () => {
+                    if (!isDragging) return;
+                    isDragging = false;
+                    document.body.classList.remove('lock-scroll');
+                    el.style.transition = 'transform 0.85s cubic-bezier(0.68, -0.6, 0.265, 1.65)';
+                    el.style.transform = 'translate3d(0px, 0px, 0) rotate(0deg) scale(1, 1)';
+                };
+
+                el.addEventListener('click', async (e) => {
+                    if (movedDistance > 12) { e.preventDefault(); return; }
+                    const platform = el.dataset.platform;
+                    if (platform) {
+                        const res = await callServer('track', { type: platform });
+                        if (res && res.stats) appData.stats = res.stats;
+                    }
+                });
+
+                el.addEventListener('mousedown', onStart);
+                window.addEventListener('mousemove', onMove, { passive: false });
+                window.addEventListener('mouseup', onEnd);
+                el.addEventListener('touchstart', onStart, { passive: false });
+                window.addEventListener('touchmove', onMove, { passive: false });
+                window.addEventListener('touchend', onEnd);
+                window.addEventListener('touchcancel', onEnd);
+            });
+        }
+
+        function requestAdminAccess() {
+            if (sessionAdminPass) openAdminModal();
+            else {
+                document.getElementById('input-admin-pass').value = '';
+                document.getElementById('login-modal').style.display = 'flex';
+                document.getElementById('input-admin-pass').focus();
+            }
+        }
+
+        async function verifyLogin() {
+            const pass = document.getElementById('input-admin-pass').value.trim();
+            if (!pass) return;
+            const res = await callServer('login', { password: pass });
+            if (res && res.success) {
+                sessionAdminPass = pass;
+                if (res.data && res.data.name) appData = res.data;
+                else if (res.data && res.data.stats) appData.stats = res.data.stats;
+                document.getElementById('login-modal').style.display = 'none';
+                openAdminModal();
+                showToast('🔓 Đăng nhập Admin thành công!');
+            } else {
+                showToast('❌ Sai mật khẩu trong file .env!');
+            }
+        }
+
+        function openAdminModal() {
+            const st = appData.stats || { views: 0, fb: 0, tele: 0, zalo: 0 };
+            document.getElementById('stat-views').innerText = st.views || 0;
+            document.getElementById('stat-fb').innerText = st.fb || 0;
+            document.getElementById('stat-tele').innerText = st.tele || 0;
+            document.getElementById('stat-zalo').innerText = st.zalo || 0;
+
+            document.getElementById('input-bg').value = appData.bgLink || '';
+            document.getElementById('input-avatar').value = appData.avatar || '';
+            document.getElementById('input-name').value = appData.name || '';
+            document.getElementById('input-bio').value = appData.bio || '';
+            document.getElementById('input-fb').value = appData.fb || '';
+            document.getElementById('input-tele').value = appData.tele || '';
+            document.getElementById('input-zalo').value = appData.zalo || '';
+
+            renderAdminSections();
+            document.getElementById('admin-panel').style.display = 'flex';
+        }
+
+        function closeAdmin() { document.getElementById('admin-panel').style.display = 'none'; }
+
+        function renderAdminSections() {
+            const list = document.getElementById('admin-sections-list');
+            list.innerHTML = '';
+            (appData.sections || []).forEach((sec, idx) => {
+                const item = document.createElement('div');
+                item.className = 'section-item-admin';
+                item.innerHTML = `
+                    <button type="button" class="btn-remove-sec" onclick="removeSectionAdmin(${idx})">Xóa mục</button>
+                    <input type="text" class="sec-title-inp" value="${sec.title}" placeholder="Tiêu đề mục...">
+                    <textarea class="sec-content-inp" rows="2" placeholder="Nội dung mục...">${sec.content}</textarea>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        function addSectionAdmin() {
+            syncAdminSectionsFromDOM();
+            appData.sections.push({ title: '✨ Mục Mới', content: 'Nội dung mục mới...' });
+            renderAdminSections();
+        }
+
+        function removeSectionAdmin(index) {
+            syncAdminSectionsFromDOM();
+            appData.sections.splice(index, 1);
+            renderAdminSections();
+        }
+
+        function syncAdminSectionsFromDOM() {
+            const titles = document.querySelectorAll('.sec-title-inp');
+            const contents = document.querySelectorAll('.sec-content-inp');
+            const updated = [];
+            titles.forEach((t, i) => updated.push({ title: t.value, content: contents[i].value }));
+            appData.sections = updated;
+        }
+
+        document.getElementById('input-upload-file').addEventListener('change', async function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            showToast('⏳ Đang tải file lên Domain...');
+            const formData = new FormData();
+            formData.append('action', 'upload');
+            formData.append('password', sessionAdminPass);
+            formData.append('file', file);
+
+            const res = await callServer('upload', formData, true);
+            if (res && res.success && res.url) {
+                document.getElementById('input-bg').value = res.url;
+                document.getElementById('upload-status').innerText = `✅ Đã tải lên Domain: ${res.url}`;
+                showToast('✅ Tải file lên thành công!');
+            } else {
+                showToast('❌ Lỗi tải file (Kiểm tra dung lượng upload_max_filesize trên Host).');
+            }
+        });
+
+        async function saveDataToServer() {
+            syncAdminSectionsFromDOM();
+            appData.bgLink = document.getElementById('input-bg').value.trim();
+            appData.avatar = document.getElementById('input-avatar').value.trim();
+            appData.name = document.getElementById('input-name').value;
+            appData.bio = document.getElementById('input-bio').value;
+            appData.fb = document.getElementById('input-fb').value.trim();
+            appData.tele = document.getElementById('input-tele').value.trim();
+            appData.zalo = document.getElementById('input-zalo').value.trim();
+
+            const res = await callServer('save', { password: sessionAdminPass, data: appData });
+            if (res && res.success) {
+                showToast('✅ Đã lưu vào data.json trên Domain! Mọi người truy cập đều sẽ thấy.');
+            } else {
+                showToast('⚠️ Không thể ghi file data.json (Hãy kiểm tra quyền ghi CHMOD 755 trên Host).');
+            }
+            renderUI();
+            await renderBackground();
+            closeAdmin();
+        }
+
+        document.getElementById('avatar-trigger').addEventListener('dblclick', requestAdminAccess);
+        initApp();
+    </script>
+</body>
+</html>
     </script>
 </body>
 </html>
